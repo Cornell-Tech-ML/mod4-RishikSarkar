@@ -5,6 +5,17 @@ from typing import List, Tuple
 
 
 def make_pts(N: int) -> List[Tuple[float, float]]:
+    """Generate N random 2D points.
+
+    Args:
+    ----
+        N (int): Number of points to generate.
+
+    Returns:
+    -------
+        List[Tuple[float, float]]: List of N random 2D points.
+
+    """
     X = []
     for i in range(N):
         x_1 = random.random()
@@ -21,6 +32,17 @@ class Graph:
 
 
 def simple(N: int) -> Graph:
+    """Generate a simple dataset with a linear decision boundary.
+
+    Args:
+    ----
+        N (int): Number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph containing the dataset.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -30,6 +52,17 @@ def simple(N: int) -> Graph:
 
 
 def diag(N: int) -> Graph:
+    """Generate a dataset with a diagonal decision boundary.
+
+    Args:
+    ----
+        N (int): Number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph containing the dataset.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -39,6 +72,17 @@ def diag(N: int) -> Graph:
 
 
 def split(N: int) -> Graph:
+    """Generate a dataset with two separate clusters.
+
+    Args:
+    ----
+        N (int): Number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph containing the dataset.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -48,6 +92,17 @@ def split(N: int) -> Graph:
 
 
 def xor(N: int) -> Graph:
+    """Generate a dataset with an XOR-like pattern.
+
+    Args:
+    ----
+        N (int): Number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph containing the dataset.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -57,6 +112,17 @@ def xor(N: int) -> Graph:
 
 
 def circle(N: int) -> Graph:
+    """Generate a dataset with a circular decision boundary.
+
+    Args:
+    ----
+        N (int): Number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph containing the dataset.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -67,6 +133,18 @@ def circle(N: int) -> Graph:
 
 
 def spiral(N: int) -> Graph:
+    """Generate a dataset with a spiral pattern.
+
+    Args:
+    ----
+        N (int): Number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph containing the dataset.
+
+    """
+
     def x(t: float) -> float:
         return t * math.cos(t) / 20.0
 
