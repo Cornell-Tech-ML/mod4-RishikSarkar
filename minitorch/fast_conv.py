@@ -1,10 +1,13 @@
+import numpy as np
 from typing import Tuple, TypeVar, Any
 
 from numba import njit as _njit
+from numba import prange
 
 from .autodiff import Context
 from .tensor import Tensor
 from .tensor_data import (
+    MAX_DIMS,
     Shape,
     Strides,
     Storage,
@@ -87,8 +90,33 @@ def _tensor_conv1d(
     s1 = input_strides
     s2 = weight_strides
 
-    # TODO: Implement for Task 4.1.
-    raise NotImplementedError("Need to implement for Task 4.1")
+    # Loop over output positions in parallel
+    for i in prange(out_size):
+        # Convert flat index to 3D position
+        out_index = np.zeros(MAX_DIMS, dtype=np.int32)
+        to_index(i, out_shape, out_index)
+        batch, out_channel, out_width = out_index[0], out_index[1], out_index[2]
+        out_pos = index_to_position(out_index, out_strides)
+
+        # Reset accumulator
+        out[out_pos] = 0.0
+
+        # Compute convolution at this position
+        for in_channel in prange(in_channels):
+            for offset in prange(kw):
+                # Handle forward/backward direction
+                in_width = out_width - offset if reverse else out_width + offset
+                if in_width < 0 or in_width >= width:
+                    continue
+
+                # Use strides to convert the batch, input and width to the position in the input tensor
+                input_pos = batch * s1[0] + in_channel * s1[1] + in_width * s1[2]
+
+                # Use strides to convert the channel
+                weight_pos = out_channel * s2[0] + in_channel * s2[1] + offset * s2[2]
+
+                # Accumulate the convolution result
+                out[out_pos] += input[input_pos] * weight[weight_pos]
 
 
 tensor_conv1d = njit(_tensor_conv1d, parallel=True)
