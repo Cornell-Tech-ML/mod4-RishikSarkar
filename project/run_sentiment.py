@@ -1,7 +1,9 @@
+import os.path
+os.environ['HOME'] = os.path.expanduser('~')
+
 import random
 
 import embeddings
-from glove_get_data import get_embeddings
 
 import minitorch
 from datasets import load_dataset
@@ -273,7 +275,7 @@ if __name__ == "__main__":
 
     (X_train, y_train), (X_val, y_val) = encode_sentiment_data(
         load_dataset("glue", "sst2"),
-        get_embeddings(),
+        embeddings.GloveEmbedding("wikipedia_gigaword", d_emb=50, show_progress=True),
         train_size,
         validation_size,
     )
