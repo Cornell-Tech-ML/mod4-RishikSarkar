@@ -63,7 +63,9 @@ class CNNSentimentKim(minitorch.Module):
     ):
         super().__init__()
         self.feature_map_size = feature_map_size
-        self.convs = [ Conv1d(embedding_size, feature_map_size, fs) for fs in filter_sizes ]
+        self.conv1 = Conv1d(embedding_size, feature_map_size, filter_sizes[0])
+        self.conv2 = Conv1d(embedding_size, feature_map_size, filter_sizes[1])
+        self.conv3 = Conv1d(embedding_size, feature_map_size, filter_sizes[2])
         self.linear = Linear(feature_map_size, 1)
         self.dropout = dropout
 
@@ -71,20 +73,23 @@ class CNNSentimentKim(minitorch.Module):
         """
         embeddings tensor: [batch x sentence length x embedding dim]
         """
-        permuted_embeddings = embeddings.permute(0, 2, 1)
+        input_tensor = embeddings.permute(0, 2, 1)
 
-        conv_feature_maps = [conv.forward(permuted_embeddings).relu() for conv in self.convs]
+        conv_output1 = self.conv1.forward(input_tensor).relu()
+        conv_output2 = self.conv2.forward(input_tensor).relu()
+        conv_output3 = self.conv3.forward(input_tensor).relu()
 
-        pooled_features = (
-            minitorch.nn.max(conv_feature_maps[0], 2) +
-            minitorch.nn.max(conv_feature_maps[1], 2) +
-            minitorch.nn.max(conv_feature_maps[2], 2)
-        )
+        pooled1 = minitorch.max(conv_output1, dim=2)
+        pooled2 = minitorch.max(conv_output2, dim=2)
+        pooled3 = minitorch.max(conv_output3, dim=2)
 
-        linear_output = self.linear(pooled_features.view(pooled_features.shape[0], pooled_features.shape[1]))
-        dropout_output = minitorch.nn.dropout(linear_output, self.dropout)
+        merged_features = pooled1 + pooled2 + pooled3
+        merged_features = merged_features.view(merged_features.shape[0], merged_features.shape[1])
 
-        return dropout_output.sigmoid().view(permuted_embeddings.shape[0])
+        output = self.linear.forward(merged_features)
+        output = minitorch.dropout(output, self.dropout, not self.training)
+
+        return output.sigmoid().view(embeddings.shape[0])
 
 
 # Evaluation helper methods
@@ -268,6 +273,8 @@ def encode_sentiment_data(dataset, pretrained_embeddings, N_train, N_val=0):
 
 
 if __name__ == "__main__":
+    random.seed(42)
+
     train_size = 450
     validation_size = 100
     learning_rate = 0.01
