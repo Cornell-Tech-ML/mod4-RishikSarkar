@@ -6,17 +6,9 @@ from minitorch import Tensor
 
 from .tensor_strategies import tensors
 
-import numba
 import numpy
 import random
 import time
-
-try:
-    import numba.cuda
-
-    CUDA_AVAILABLE = numba.cuda.is_available()
-except ImportError:
-    CUDA_AVAILABLE = False
 
 
 @pytest.mark.task4_1
@@ -81,8 +73,6 @@ def test_conv2() -> None:
     minitorch.grad_check(minitorch.Conv2dFun.apply, t, t2)
 
 
-# CUDA Tests
-@pytest.mark.skipif(not CUDA_AVAILABLE, reason="CUDA not available")
 @pytest.mark.task4_4b
 def test_conv1d_cuda() -> None:
     """Test 1D convolution implementation matches between CPU and CUDA"""
@@ -116,7 +106,7 @@ def test_conv1d_cuda() -> None:
         cpu_time = cpu_end - cpu_start
 
         cuda_start = time.perf_counter()
-        cuda_output = minitorch.cuda_conv.Conv1dFun.apply(x, w)
+        cuda_output = minitorch.cuda_conv.Cuda1dFun.apply(x, w)
         cuda_end = time.perf_counter()
         cuda_time = cuda_end - cuda_start
 
@@ -144,10 +134,9 @@ def test_conv1d_cuda() -> None:
             atol=1e-2,
         )
 
-        minitorch.grad_check(minitorch.cuda_conv.Conv1dFun.apply, x, w)
+        minitorch.grad_check(minitorch.cuda_conv.Cuda1dFun.apply, x, w)
 
 
-@pytest.mark.skipif(not CUDA_AVAILABLE, reason="CUDA not available")
 @pytest.mark.task4_4b
 def test_conv2d_cuda() -> None:
     """Test 2D convolution implementation matches between CPU and CUDA"""
@@ -181,7 +170,7 @@ def test_conv2d_cuda() -> None:
         cpu_time = cpu_end - cpu_start
 
         cuda_start = time.perf_counter()
-        cuda_output = minitorch.cuda_conv.Conv2dFun.apply(x, w)
+        cuda_output = minitorch.cuda_conv.Cuda2dFun.apply(x, w)
         cuda_end = time.perf_counter()
         cuda_time = cuda_end - cuda_start
 
@@ -209,4 +198,4 @@ def test_conv2d_cuda() -> None:
             atol=1e-2,
         )
 
-        minitorch.grad_check(minitorch.cuda_conv.Conv2dFun.apply, x, w)
+        minitorch.grad_check(minitorch.cuda_conv.Cuda2dFun.apply, x, w)

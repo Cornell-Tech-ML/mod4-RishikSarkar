@@ -219,7 +219,7 @@ def _cuda_conv1d(
 cuda_conv1d = cuda.jit()(_cuda_conv1d)
 
 
-class Conv1dFun(Function):
+class Cuda1dFun(Function):
     @staticmethod
     def forward_inner(
         output_shape: UserShape, input: Tensor, weight: Tensor, reversed: bool = False
@@ -275,7 +275,7 @@ class Conv1dFun(Function):
         """
         ctx.save_for_backward(input, weight)
 
-        output = Conv1dFun.forward_inner(
+        output = Cuda1dFun.forward_inner(
             (input.shape[0], weight.shape[0], input.shape[2]),
             input,
             weight,
@@ -302,7 +302,7 @@ class Conv1dFun(Function):
 
         new_input = input.permute(1, 0, 2)
         new_grad_output = grad_output.permute(1, 0, 2)
-        grad_weight = Conv1dFun.forward_inner(
+        grad_weight = Cuda1dFun.forward_inner(
             (weight.shape[1], weight.shape[0], weight.shape[2]),
             new_input,
             new_grad_output,
@@ -311,14 +311,14 @@ class Conv1dFun(Function):
         grad_weight = grad_weight.permute(1, 0, 2)
 
         new_weight = weight.permute(1, 0, 2)
-        grad_input = Conv1dFun.forward_inner(
+        grad_input = Cuda1dFun.forward_inner(
             input.shape, grad_output, new_weight, reversed=True
         )
 
         return grad_input, grad_weight
 
 
-conv1d = Conv1dFun.apply
+cuda1d = Cuda1dFun.apply
 
 
 def _cuda_conv2d(
@@ -532,7 +532,7 @@ def _cuda_conv2d(
 cuda_conv2d = cuda.jit()(_cuda_conv2d)
 
 
-class Conv2dFun(Function):
+class Cuda2dFun(Function):
     @staticmethod
     def forward_inner(
         output_shape: UserShape, input: Tensor, weight: Tensor, reversed: bool = False
@@ -588,7 +588,7 @@ class Conv2dFun(Function):
         """
         ctx.save_for_backward(input, weight)
         output_shape = (input.shape[0], weight.shape[0], input.shape[2], input.shape[3])
-        output = Conv2dFun.forward_inner(output_shape, input, weight, reversed=False)
+        output = Cuda2dFun.forward_inner(output_shape, input, weight, reversed=False)
         return output
 
     @staticmethod
@@ -609,7 +609,7 @@ class Conv2dFun(Function):
 
         new_input = input.permute(1, 0, 2, 3)
         new_grad_output = grad_output.permute(1, 0, 2, 3)
-        grad_weight = Conv2dFun.forward_inner(
+        grad_weight = Cuda2dFun.forward_inner(
             (weight.shape[1], weight.shape[0], weight.shape[2], weight.shape[3]),
             new_input,
             new_grad_output,
@@ -618,11 +618,11 @@ class Conv2dFun(Function):
         grad_weight = grad_weight.permute(1, 0, 2, 3)
 
         new_weight = weight.permute(1, 0, 2, 3)
-        grad_input = Conv2dFun.forward_inner(
+        grad_input = Cuda2dFun.forward_inner(
             input.shape, grad_output, new_weight, reversed=True
         )
 
         return grad_input, grad_weight
 
 
-conv2d = Conv2dFun.apply
+cuda2d = Cuda2dFun.apply
