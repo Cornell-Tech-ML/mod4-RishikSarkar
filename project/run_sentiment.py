@@ -1,3 +1,6 @@
+import os.path
+os.environ['HOME'] = os.path.expanduser('~')
+
 import random
 
 import embeddings
@@ -34,8 +37,7 @@ class Conv1d(minitorch.Module):
         self.bias = RParam(1, out_channels, 1)
 
     def forward(self, input):
-        # TODO: Implement for Task 4.5.
-        raise NotImplementedError("Need to implement for Task 4.5")
+        return minitorch.conv1d(input, self.weights.value) + self.bias.value
 
 
 class CNNSentimentKim(minitorch.Module):
@@ -61,15 +63,33 @@ class CNNSentimentKim(minitorch.Module):
     ):
         super().__init__()
         self.feature_map_size = feature_map_size
-        # TODO: Implement for Task 4.5.
-        raise NotImplementedError("Need to implement for Task 4.5")
+        self.conv1 = Conv1d(embedding_size, feature_map_size, filter_sizes[0])
+        self.conv2 = Conv1d(embedding_size, feature_map_size, filter_sizes[1])
+        self.conv3 = Conv1d(embedding_size, feature_map_size, filter_sizes[2])
+        self.linear = Linear(feature_map_size, 1)
+        self.dropout = dropout
 
     def forward(self, embeddings):
         """
         embeddings tensor: [batch x sentence length x embedding dim]
         """
-        # TODO: Implement for Task 4.5.
-        raise NotImplementedError("Need to implement for Task 4.5")
+        input_tensor = embeddings.permute(0, 2, 1)
+
+        conv_output1 = self.conv1.forward(input_tensor).relu()
+        conv_output2 = self.conv2.forward(input_tensor).relu()
+        conv_output3 = self.conv3.forward(input_tensor).relu()
+
+        pooled1 = minitorch.max(conv_output1, dim=2)
+        pooled2 = minitorch.max(conv_output2, dim=2)
+        pooled3 = minitorch.max(conv_output3, dim=2)
+
+        merged_features = pooled1 + pooled2 + pooled3
+        merged_features = merged_features.view(merged_features.shape[0], merged_features.shape[1])
+
+        output = self.linear.forward(merged_features)
+        output = minitorch.dropout(output, self.dropout, not self.training)
+
+        return output.sigmoid().view(embeddings.shape[0])
 
 
 # Evaluation helper methods
@@ -253,6 +273,8 @@ def encode_sentiment_data(dataset, pretrained_embeddings, N_train, N_val=0):
 
 
 if __name__ == "__main__":
+    random.seed(42)
+
     train_size = 450
     validation_size = 100
     learning_rate = 0.01
